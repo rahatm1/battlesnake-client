@@ -25,11 +25,10 @@ function Game(canvas, options) {
     this.context = canvas.getContext('2d');
 
     this.score = 0;
-    this.key = 'right';
     this.entities = [];
 
     this.options = {
-        fps: 5
+        fps: 10
     };
 
     if (options) {
@@ -112,22 +111,22 @@ Game.prototype.keyBindings = function () {
         switch ((e.which || e.keyCode) | 0) {
             case keys.a:
             case keys.left:
-                if (that.key !== 'right') that.key = 'left';
+                if (that.key !== 'east') that.key = 'west';
                 break;
 
             case keys.d:
             case keys.right:
-                if (that.key !== 'left') that.key = 'right';
+                if (that.key !== 'west') that.key = 'east';
                 break;
 
             case keys.w:
             case keys.up:
-                if (that.key !== 'down') that.key = 'up';
+                if (that.key !== 'south') that.key = 'north';
                 break;
 
             case keys.s:
             case keys.down:
-                if (that.key !== 'up') that.key = 'down';
+                if (that.key !== 'north') that.key = 'south';
         }
     };
 };
@@ -206,9 +205,7 @@ function Snake(game, food){
         if(game.key === 'south') this.y++;
 
         // boundaries
-        this.x = (this.x + tile) % tile;
-        this.y = (this.y + tile) % tile;
-
+        if (this.x>tile || this.x < 0 || this.y > tile || this.y <0) game.stop();
         /**
          * check snake-food collision
          */
@@ -232,16 +229,14 @@ function Snake(game, food){
         /**
          * check collision with snake itself - skipping the head (`--i` instead of `i--`)
          */
-        var x = this.segments.length;
-        while (--x) {
-            if(game.collide(this, this.segments[x])) {
+        var j = this.segments.length;
+        while (--j) {
+            if(game.collide(this, this.segments[j])) {
                 // break the loop and slice the worm in point of intersection
                 // here's in reality gameover...
-                // game.stop();
-                return this.segments.splice(x);
+                game.stop();
             }
         }
-
     };
 
     this.draw = function(ctx) {
@@ -258,7 +253,6 @@ function Snake(game, food){
         }
     };
 }
-
 
 /**
  * The whole things to eat
