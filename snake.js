@@ -25,10 +25,11 @@ function Game(canvas, options) {
     this.context = canvas.getContext('2d');
 
     this.score = 0;
+    this.key = 'east';
     this.entities = [];
 
     this.options = {
-        fps: 10
+        fps: 5
     };
 
     if (options) {
@@ -170,7 +171,7 @@ Game.prototype.gameLoop = function () {
             contentType: "application/json"
         }).done(function(data) {
                 console.log(data);
-                this.key = data.move;
+                self.key = data.move;
                 self.gameLoop();
         });
     }, 1000 / this.options.fps);
@@ -201,8 +202,8 @@ function Snake(game, food){
 
         if(game.key === 'west') this.x--;
         if(game.key === 'east') this.x++;
-        if(game.key === 'north') this.y--;
-        if(game.key === 'south') this.y++;
+        if(game.key === 'south') this.y--;
+        if(game.key === 'north') this.y++;
 
         // boundaries
         if (this.x>tile || this.x < 0 || this.y > tile || this.y <0) game.stop();
@@ -221,7 +222,6 @@ function Snake(game, food){
             // didn't got a point in this turn
             if (this.segments.length) this.segments.pop();
         }
-
 
         // push next x and y to the beginning of segments
         this.segments.unshift({x:this.x, y:this.y});
@@ -264,7 +264,7 @@ function Food(game){
 
     this.x = Math.round(Math.random()*game.tile);
     this.y = Math.round(Math.random()*game.tile);
-    gameState.food = [this.x, this.y];
+    gameState.food = [[this.x, this.y]];
 
     this.draw = function(ctx){
         ctx.fillStyle = "#f05";
