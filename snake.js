@@ -29,7 +29,7 @@ function Game(canvas, options) {
     this.entities = [];
 
     this.options = {
-        fps: 5
+        fps: 10
     };
 
     if (options) {
@@ -62,7 +62,7 @@ Game.prototype.stop = function() {
  */
 Game.prototype.scale = function () {
     this.ratio = innerWidth < innerHeight ? innerWidth : innerHeight;
-    this.tile = (this.ratio / 20) | 0;
+    this.tile = Math.round(this.ratio / 20);
     this.grid = Math.round(this.ratio / this.tile);
 
     this.canvas.width = this.canvas.height = this.ratio;
@@ -195,11 +195,6 @@ function Snake(game, food){
     this.update = function() {
         gameState.snakes[0].health_points--;
 
-        for (var i = 0; i < this.segments.length; i++) {
-            gameState.snakes[0].coords[i] = [this.segments[i].x,
-                                             this.segments[i].y];
-        }
-
         if(game.key === 'west') this.x--;
         if(game.key === 'east') this.x++;
         if(game.key === 'south') this.y--;
@@ -225,6 +220,11 @@ function Snake(game, food){
 
         // push next x and y to the beginning of segments
         this.segments.unshift({x:this.x, y:this.y});
+
+        for (var i = 0; i < this.segments.length; i++) {
+            gameState.snakes[0].coords[i] = [this.segments[i].x,
+                                             this.segments[i].y];
+        }
 
         /**
          * check collision with snake itself - skipping the head (`--i` instead of `i--`)
