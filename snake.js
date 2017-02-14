@@ -36,7 +36,7 @@ function Game(canvas, options) {
     this.entities = [];
 
     this.options = {
-        fps: 10
+        fps: 5
     };
 
     if (options) {
@@ -60,6 +60,7 @@ Game.prototype.start = function () {
  * Stop the game loop
  */
 Game.prototype.stop = function() {
+    alert("GAME OVER");
     this.pause = true;
 };
 
@@ -194,6 +195,7 @@ Game.prototype.gameLoop = function () {
         }).spread((move1, move2) => {
             console.log(move1);
             console.log(move2);
+            self.key = [move1.move, move2.move];
             self.gameLoop();
         });
 };
@@ -208,13 +210,18 @@ function Snake(game, food, name, options){
     var grid = game.grid;
     var collide = game.collide;
 
-    this.x = Math.round(Math.random()*tile);
-    this.y = Math.round(Math.random()*tile);
+    this.x = Math.round(Math.random()*tile-3);
+    this.y = Math.round(Math.random()*tile-3);
 
     this.snakeId = game.snakes[name];
 
-    this.segments = [];
+    this.segments = [
+      { x: this.x,   y: this.y },
+      { x: this.x-1, y: this.y },
+      { x: this.x-2, y: this.y }];
     gameState.snakes[this.snakeId].coords[0] = [this.x, this.y];
+    gameState.snakes[this.snakeId].coords[1] = [this.x-1, this.y];
+    gameState.snakes[this.snakeId].coords[2] = [this.x-2, this.y];
 
     this.update = function() {
         gameState.snakes[this.snakeId].health_points--;
@@ -312,13 +319,13 @@ window.onload = function() {
     game.key = ['east', 'north'];
 
     var redSnake = new Snake(game, food, "red", {
-      headColor: "#009688",
-      bodyColor: "#00796B"
+      headColor: "green",
+      bodyColor: "#009688"
     });
 
     var blueSnake = new Snake(game, food, "blue", {
-      headColor: "#0cf",
-      bodyColor: "#0ae",
+      headColor: "blue",
+      bodyColor: "#0cf"
     });
 
     game.addEntity(food);
