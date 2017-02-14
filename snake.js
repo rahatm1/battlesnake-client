@@ -2,8 +2,8 @@ var gameState = {
                 board: [[]],
                 food: [[]],
                 game_id: "1",
-                height: 35,
-                width: 35,
+                height: 15,
+                width: 15,
                 snakes: [
                 {
                   taunt: "git gud",
@@ -177,6 +177,36 @@ Game.prototype.gameLoop = function () {
     }, 1000 / this.options.fps);
 };
 
+
+function getRandomPoint(bound) {
+    var rand = Math.round(Math.random()*bound - 1);
+    return rand >= 1 ? rand : 2;
+}
+
+/**
+ * Find if food spawns on snake position
+ *
+ */
+
+function validateFoodPoint(game, food){
+
+    var gameSnakes = game.entities.filter((e) => {
+        return e.segments;
+    });
+    console.log(gameSnakes);
+
+    for(var i = 0; i < gameSnakes.length; i++){
+        var s = gameSnakes[i];
+        for(var j = 0; j < s.segments.length; j++){
+            if (s.segments[j].x === food.x && s.segments[j].y === food.y){
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 /**
  * The whole snake things
  *
@@ -200,16 +230,24 @@ function Snake(game, food){
         if(game.key === 'south') this.y--;
         if(game.key === 'north') this.y++;
 
+        //TODO: Update food spawning right in front of snake and snake going out of bounds/dying
+
         // boundaries
-        if (this.x>tile || this.x < 0 || this.y > tile || this.y <0) game.stop();
+        if (this.x>tile || this.x < 0 || this.y > tile || this.y < 0) game.stop();
         /**
          * check snake-food collision
          */
         if (game.collide(this, food)) {
 
-            // randomize point position
-            food.x = food.y = Math.round(Math.random() * tile);
+            food.x = getRandomPoint(game);
+            food.y = getRandomPoint(game);
+            while(!validateFoodPoint(game,food)){
+                food.x = getRandomPoint(game);
+                food.y = getRandomPoint(game);
+            }
+
             gameState.food =[[food.x, food.y]];
+            //TODO: Account for multiple snakes for resetting hp right here        
             gameState.snakes[0].health_points = 100;
 
         } else {
@@ -260,10 +298,10 @@ function Snake(game, food){
  * @constructor
  */
 function Food(game){
-    var grid = game.grid;
 
-    this.x = Math.round(Math.random()*game.tile);
-    this.y = Math.round(Math.random()*game.tile);
+    var grid = game.grid;
+    this.x = Math.round(Math.random()*game.tile-1);
+    this.y = Math.round(Math.random()*game.tile-1);
     gameState.food = [[this.x, this.y]];
 
     this.draw = function(ctx){
