@@ -6,14 +6,21 @@ var gameState = {
                 width: 35,
                 snakes: [
                 {
-                  taunt: "git gud",
-                  name: "my-snake",
-                  id: "A",
+                  taunt: "",
+                  name: "Red Snake",
+                  id: 0,
                   health_points: 100,
                   coords: [[]]
-                }],
+                },
+                {
+                  taunt: "",
+                  name: "Blue Snake",
+                  id: 1,
+                  health_points: 100,
+                  coords: [[]]
+                }
+                ],
                 turn: 0,
-                you: "A"
             };
 /**
  * A lightweight game wrapper
@@ -23,9 +30,9 @@ var gameState = {
 function Game(canvas, options) {
     this.canvas = canvas;
     this.context = canvas.getContext('2d');
+    this.snakes = {};
 
-    this.score = 0;
-    this.key = 'east';
+    this.key = [];
     this.entities = [];
 
     this.options = {
@@ -162,19 +169,33 @@ Game.prototype.gameLoop = function () {
     }
 
     gameState.turn++;
-    setTimeout(function(){
+    var redSnake = $.extend({}, gameState);
+    redSnake.you = 0;
+
+    var blueSnake = $.extend({}, gameState);
+    blueSnake.you = 1;
+
+    Promise.delay(1000/this.options.fps).then(() => {
+      return [
         $.ajax({
             type: "post",
             url: "http://localhost:5000/move",
-            data: JSON.stringify(gameState),
+            data: JSON.stringify(redSnake),
             dataType: "json",
             contentType: "application/json"
-        }).done(function(data) {
-                console.log(data);
-                self.key = data.move;
-                self.gameLoop();
+          }),
+        $.ajax({
+            type: "post",
+            url: "http://localhost:5000/move",
+            data: JSON.stringify(blueSnake),
+            dataType: "json",
+            contentType: "application/json"
+          })];
+        }).spread((move1, move2) => {
+            console.log(move1);
+            console.log(move2);
+            self.gameLoop();
         });
-    }, 1000 / this.options.fps);
 };
 
 /**
@@ -182,23 +203,28 @@ Game.prototype.gameLoop = function () {
  *
  * @constructor
  */
-function Snake(game, food){
+function Snake(game, food, name, options){
     var tile = game.tile;
     var grid = game.grid;
     var collide = game.collide;
 
-    this.x = 4;
-    this.y = 4;
+    this.x = Math.round(Math.random()*tile);
+    this.y = Math.round(Math.random()*tile);
+
+    this.snakeId = game.snakes[name];
+
     this.segments = [];
-    gameState.snakes[0].coords[0] = [this.x, this.y];
+    gameState.snakes[this.snakeId].coords[0] = [this.x, this.y];
 
     this.update = function() {
-        gameState.snakes[0].health_points--;
+        gameState.snakes[this.snakeId].health_points--;
 
-        if(game.key === 'west') this.x--;
-        if(game.key === 'east') this.x++;
-        if(game.key === 'south') this.y--;
-        if(game.key === 'north') this.y++;
+        var key = game.key[this.snakeId];
+
+        if(key === 'west') this.x--;
+        if(key === 'east') this.x++;
+        if(key === 'south') this.y--;
+        if(key === 'north') this.y++;
 
         // boundaries
         if (this.x>tile || this.x < 0 || this.y > tile || this.y <0) game.stop();
@@ -210,7 +236,7 @@ function Snake(game, food){
             // randomize point position
             food.x = food.y = Math.round(Math.random() * tile);
             gameState.food =[[food.x, food.y]];
-            gameState.snakes[0].health_points = 100;
+            gameState.snakes[this.snakeId].health_points = 100;
 
         } else {
             // remove last segment if snake
@@ -222,7 +248,7 @@ function Snake(game, food){
         this.segments.unshift({x:this.x, y:this.y});
 
         for (var i = 0; i < this.segments.length; i++) {
-            gameState.snakes[0].coords[i] = [this.segments[i].x,
+            gameState.snakes[this.snakeId].coords[i] = [this.segments[i].x,
                                              this.segments[i].y];
         }
 
@@ -245,7 +271,7 @@ function Snake(game, food){
         var i = this.segments.length;
         while (i--) {
             var segment = this.segments[i];
-            ctx.fillStyle = !i ? '#0cf' : '#0ae';
+            ctx.fillStyle = !i ? options.headColor : options.bodyColor;
             ctx.fillRect(
             segment.x * grid,
             segment.y * grid,
@@ -279,20 +305,44 @@ window.onload = function() {
 
     var game = new Game(canvas);
     var food = new Food(game);
-    var snake = new Snake(game, food);
+    game.snakes = {
+      'red' : 0,
+      'blue': 1
+    };
+    game.key = ['east', 'north'];
+
+    var redSnake = new Snake(game, food, "red", {
+      headColor: "#009688",
+      bodyColor: "#00796B"
+    });
+
+    var blueSnake = new Snake(game, food, "blue", {
+      headColor: "#0cf",
+      bodyColor: "#0ae",
+    });
 
     game.addEntity(food);
-    game.addEntity(snake);
+    game.addEntity(redSnake);
+    game.addEntity(blueSnake);
 
     gameState.height = gameState.width = game.tile;
 
-    $.ajax({
-        type: "post",
-        url: "http://localhost:5000/start",
-        data: JSON.stringify({game_id: 1}),
-        dataType: "json",
-        contentType: "application/json",
-    }).done(function() {
+    Promise.all([
+      $.ajax({
+          type: "post",
+          url: "http://localhost:5000/start",
+          data: JSON.stringify({game_id: 1}),
+          dataType: "json",
+          contentType: "application/json"
+        }),
+      $.ajax({
+          type: "post",
+          url: "http://localhost:5000/start",
+          data: JSON.stringify({game_id: 1}),
+          dataType: "json",
+          contentType: "application/json"
+      })
+    ]).spread(function() {
         game.start();
     });
 };
