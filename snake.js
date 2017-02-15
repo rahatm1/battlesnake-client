@@ -32,7 +32,7 @@ function Game(canvas, options) {
     this.context = canvas.getContext('2d');
     this.snakes = {};
 
-    this.key = [];
+    this.key = ['east', 'north'];
     this.entities = [];
 
     this.options = {
@@ -52,7 +52,7 @@ function Game(canvas, options) {
  */
 Game.prototype.start = function () {
     // TODO: Add more snakes
-    // this.keyBindings();
+    this.keyBindings();
     this.gameLoop();
 };
 
@@ -120,22 +120,22 @@ Game.prototype.keyBindings = function () {
         switch ((e.which || e.keyCode) | 0) {
             case keys.a:
             case keys.left:
-                if (that.key !== 'east') that.key = 'west';
+                if (that.key[0] !== 'east') that.key[0] = 'west';
                 break;
 
             case keys.d:
             case keys.right:
-                if (that.key !== 'west') that.key = 'east';
+                if (that.key[0] !== 'west') that.key[0] = 'east';
                 break;
 
             case keys.w:
             case keys.up:
-                if (that.key !== 'south') that.key = 'north';
+                if (that.key[0] !== 'north') that.key[0] = 'south';
                 break;
 
             case keys.s:
             case keys.down:
-                if (that.key !== 'north') that.key = 'south';
+                if (that.key[0] !== 'south') that.key[0] = 'north';
         }
     };
 };
@@ -181,21 +181,13 @@ Game.prototype.gameLoop = function () {
         $.ajax({
             type: "post",
             url: "http://localhost:5000/move",
-            data: JSON.stringify(redSnake),
-            dataType: "json",
-            contentType: "application/json"
-          }),
-        $.ajax({
-            type: "post",
-            url: "http://localhost:5000/move",
             data: JSON.stringify(blueSnake),
             dataType: "json",
             contentType: "application/json"
           })];
-        }).spread((move1, move2) => {
-            console.log(move1);
+        }).spread((move2) => {
             console.log(move2);
-            self.key = [move1.move, move2.move];
+            self.key[1] = move2.move;
             self.gameLoop();
         });
 };
