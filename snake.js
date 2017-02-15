@@ -270,6 +270,7 @@ function Snake(game, food, name, options){
                 game.stop();
             }
         }
+
     };
 
     this.draw = function(ctx) {
@@ -288,7 +289,7 @@ function Snake(game, food, name, options){
 }
 
 function getRandomPoint(bound) {
-  return Math.round(Math.random()*bound-1);
+  return Math.round(Math.random()*(bound-1));
 }
 /**
  * The whole things to eat
@@ -318,7 +319,7 @@ function Food(game){
       while (true) {
           var match = gameSnakes.filter((s) => {
               return (s.segments.filter((e) => {
-                  return e.x === self.x && e.y === self.y;
+                  return game.collide(self,e);
                 })).length;
               });
             if (match.length){
