@@ -36,7 +36,7 @@ function Game(canvas, options) {
     this.entities = [];
 
     this.options = {
-        fps: 5
+        fps: 15
     };
 
     if (options) {
@@ -210,8 +210,8 @@ function Snake(game, food, name, options){
     var grid = game.grid;
     var collide = game.collide;
 
-    this.x = Math.round(Math.random()*tile-3);
-    this.y = Math.round(Math.random()*tile-3);
+    this.x = Math.round(Math.random()*(tile-3));
+    this.y = Math.round(Math.random()*(tile-3));
 
     this.snakeId = game.snakes[name];
 
