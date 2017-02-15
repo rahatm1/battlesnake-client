@@ -241,7 +241,7 @@ function Snake(game, food, name, options){
         if (game.collide(this, food)) {
 
             // randomize point position
-            food.x = food.y = Math.round(Math.random() * tile);
+            food.spawnFood(game);
             gameState.food =[[food.x, food.y]];
             gameState.snakes[this.snakeId].health_points = 100;
 
@@ -287,6 +287,9 @@ function Snake(game, food, name, options){
     };
 }
 
+function getRandomPoint(bound) {
+  return Math.round(Math.random()*bound-1);
+}
 /**
  * The whole things to eat
  *
@@ -295,13 +298,37 @@ function Snake(game, food, name, options){
 function Food(game){
     var grid = game.grid;
 
-    this.x = Math.round(Math.random()*game.tile);
-    this.y = Math.round(Math.random()*game.tile);
+    this.x = getRandomPoint(game.tile);
+    this.y = getRandomPoint(game.tile);
     gameState.food = [[this.x, this.y]];
 
     this.draw = function(ctx){
         ctx.fillStyle = "#f05";
         ctx.fillRect(this.x * grid, this.y * grid, grid, grid);
+    };
+
+    this.spawnFood = function(game) {
+      var self = this;
+      var gameSnakes = game.entities.filter((e) => {
+        return e.segments;
+      });
+
+      self.x = getRandomPoint(game.tile);
+      self.y = getRandomPoint(game.tile);
+      while (true) {
+          var match = gameSnakes.filter((s) => {
+              return (s.segments.filter((e) => {
+                  return e.x === self.x && e.y === self.y;
+                })).length;
+              });
+            if (match.length){
+              self.x = getRandomPoint(game.tile);
+              self.y = getRandomPoint(game.tile);
+            }
+            else {
+              break;
+          }
+        }
     };
 }
 
