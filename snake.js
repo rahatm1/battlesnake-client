@@ -218,6 +218,8 @@ function Snake(game, food, name, options){
     this.update = function() {
         gameState.snakes[this.snakeId].health_points--;
 
+        if(gameState.snakes[this.snakeId].health_points <=0) game.stop();
+
         var key = game.key[this.snakeId];
 
         if(key === 'west') this.x--;
