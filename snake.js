@@ -36,7 +36,7 @@ function Game(canvas, options) {
     this.entities = [];
 
     this.options = {
-        fps: 15
+        fps: 20
     };
 
     if (options) {
@@ -197,6 +197,8 @@ Game.prototype.gameLoop = function () {
             console.log(move2);
             self.key = [move1.move, move2.move];
             self.gameLoop();
+            gameState.snakes[0].health_points--;
+            gameState.snakes[1].health_points--;
         });
 };
 
@@ -224,7 +226,6 @@ function Snake(game, food, name, options){
     gameState.snakes[this.snakeId].coords[2] = [this.x-2, this.y];
 
     this.update = function() {
-        gameState.snakes[this.snakeId].health_points--;
 
         var key = game.key[this.snakeId];
 
@@ -234,7 +235,14 @@ function Snake(game, food, name, options){
         if(key === 'north') this.y++;
 
         // boundaries
-        if (this.x>tile || this.x < 0 || this.y > tile || this.y <0) game.stop();
+        if (this.x>tile || this.x < 0 || this.y > tile || this.y <0) {
+          console.log(this);
+          game.stop();
+        }
+        if (gameState.snakes[this.snakeId].health_points <=0 ) {
+          console.log(this);
+          game.stop();
+        }
         /**
          * check snake-food collision
          */
