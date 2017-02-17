@@ -1,6 +1,6 @@
 var gameState = {
                 board: [[]],
-                food: [[]],
+                food: [],
                 game_id: "1",
                 height: 35,
                 width: 35,
@@ -31,6 +31,7 @@ function Game(canvas, options) {
     this.canvas = canvas;
     this.context = canvas.getContext('2d');
     this.snakes = {};
+    this.food = [];
 
     this.key = [];
     this.entities = [];
@@ -246,14 +247,31 @@ function Snake(game, food, name, options){
         /**
          * check snake-food collision
          */
-        if (game.collide(this, food)) {
 
-            // randomize point position
-            food.spawnFood(game);
-            gameState.food =[[food.x, food.y]];
-            gameState.snakes[this.snakeId].health_points = 100;
+        var bool = false;
+        var snake = this;
 
-        } else {
+        game.food.forEach( (f) => {
+
+          if (game.collide(snake, f)) {
+              // randomize point position
+              var newFoods = gameState.food.filter( (fud) => {
+                return (fud[0] !== f.x && fud[1] !== f.y);
+              });
+              console.log(newFoods);
+
+              f.spawnFood(game);
+
+              gameState.food = $.extend([], newFoods);
+              console.log(gameState.food);
+
+              gameState.food.push([f.x, f.y]);
+              gameState.snakes[snake.snakeId].health_points = 100;
+              bool = true;
+          }
+        })
+
+        if(!bool){
             // remove last segment if snake
             // didn't got a point in this turn
             if (this.segments.length) this.segments.pop();
@@ -309,7 +327,7 @@ function Food(game){
 
     this.x = getRandomPoint(game.tile);
     this.y = getRandomPoint(game.tile);
-    gameState.food = [[this.x, this.y]];
+    gameState.food.push([this.x, this.y]);
 
     this.draw = function(ctx){
         ctx.fillStyle = "#f05";
@@ -348,6 +366,8 @@ window.onload = function() {
 
     var game = new Game(canvas);
     var food = new Food(game);
+    var food2 = new Food(game);
+
     game.snakes = {
       'red' : 0,
       'blue': 1
@@ -365,8 +385,11 @@ window.onload = function() {
     });
 
     game.addEntity(food);
+    game.food.push(food);
     game.addEntity(redSnake);
     game.addEntity(blueSnake);
+    game.addEntity(food2);
+    game.food.push(food2);
 
     gameState.height = gameState.width = game.tile;
 
